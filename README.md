@@ -23,7 +23,7 @@ npm run lint
 ```
 
 
-
+### Use this for start project if you set global variable
 ### Build the app for production
 ```bash
 quasar build
