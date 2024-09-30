@@ -260,8 +260,10 @@ button#searchCityBtn:hover {
 }
 </style>
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 const modal = ref(null)
+const citiesPerSlide = 3
+const currentSlide = ref(0)
 const listPosition = ref([])
 const hourlyWeather = ref([])
 const dailyWeather = ref([])
@@ -271,7 +273,26 @@ const citySearchText = ref('')
 let id = 0
 const cityList = ref([])
 const appid = ref('5ecae512c05deedbe3b442ff6e4fb519')
-// const city = ref(null)
+const cityChunks = computed(() => {
+  const chunks = []
+  for (let i = 0; i < cityList.value.length; i += citiesPerSlide) {
+    chunks.push(cityList.value.slice(i, i + citiesPerSlide))
+  }
+  return chunks
+})
+const maxSlide = computed(() => cityChunks.value.length - 1)
+
+const nextSlide = () => {
+  if (currentSlide.value < maxSlide.value) {
+    currentSlide.value++
+  }
+}
+
+const prevSlide = () => {
+  if (currentSlide.value > 0) {
+    currentSlide.value--
+  }
+}
 function openModal () {
   modal.value.style.display = 'block'
 }
@@ -282,17 +303,27 @@ function coverterToKm (visibility) {
   return Number(visibility) / 1000
 }
 function changeCity (city) {
-  console.log('start')
-  // listPosition.value[0] = city.lat
-  // listPosition.value[1] = city.lon
-  // getTempeturebyCity()
+  listPosition.value[0] = city.lat
+  listPosition.value[1] = city.lon
+  clearWeatherData()
+  getTempeturebyCity()
+  findElementCity(city.id)
+}
+function findElementCity (id) {
+  for (let i = 0; i < 9; i++) {
+    if (cityList.value[i].id === id) {
+      cityList.value[i].active = true
+    } else {
+      cityList.value[i].active = false
+    }
+  }
 }
 async function searchCity () {
   const url = `http://api.openweathermap.org/geo/1.0/direct?q=${citySearchText.value}&limit=1&appid=${appid.value}`
   let response = await fetch(url)
   response = await response.json()
   if (response) {
-    let cityData = { id: id++, name: citySearchText.value, lat: response.lat, lon: response.lon, active: false }
+    let cityData = { id: id++, name: citySearchText.value, lat: response[0].lat, lon: response[0].lon, active: false }
     cityList.value.push(cityData)
   }
 }
@@ -304,11 +335,16 @@ async function getTempeture () {
   callWeatherAPIByHour()
   callWeatherAPIByDay()
 }
-// async function getTempeturebyCity () {
-//   callWeatherAPIByLocation()
-//   callWeatherAPIByHour()
-//   callWeatherAPIByDay()
-// }
+function clearWeatherData () {
+  hourlyWeather.value = []
+  dailyWeather.value = []
+  dataWeather.value = null
+}
+async function getTempeturebyCity () {
+  callWeatherAPIByLocation()
+  callWeatherAPIByHour()
+  callWeatherAPIByDay()
+}
 function filterDate (date) {
   let options = { weekday: 'long' }
   if (date.getDate() === new Date().getDate()) {
@@ -385,14 +421,14 @@ window.onclick = function (event) {
 </head>
 <body>
   <div class="topmenu">
-    <i class='bx bx-chevron-left-circle' id="scrollLeft"></i>
+    <i class='bx bx-chevron-left-circle' id="scrollLeft"  @click="prevSlide"></i>
     <div class="sities-container">
-        <div class="sities" id="citiesList">
-          <div :class="{ active: city.active }" v-for="city in cityList" :key="city.id" @click="changeCity">{{city.name}}</div>
+        <div class="sities" id="citiesList" v-for="(chunk, index) in cityChunks" :key="index" v-show="index === currentSlide">
+            <div :class="{ active: city.active }" v-for="city in chunk" :key="city.id" @click="changeCity(city)">{{city.name}}</div>
         </div>
     </div>
     <i class='bx bx-plus' id="openModal" @click="openModal"></i>
-    <i class='bx bx-chevron-right-circle' id="scrollRight"></i>
+    <i class='bx bx-chevron-right-circle' id="scrollRight" @click="nextSlide"></i>
   </div>
 
     <div id="myModal" class="modal" ref="modal">
