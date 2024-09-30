@@ -34,7 +34,7 @@ body {
     gap: 20px; /*Відстань між містами */
     flex-grow: 1; /*Дозволяє містам займати ширину між іконками */
     text-align: center;
-    pointer-events: none;
+    /* pointer-events: none; */
 }
 
 .sities div {
