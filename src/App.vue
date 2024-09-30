@@ -323,9 +323,24 @@ async function searchCity () {
   const url = `http://api.openweathermap.org/geo/1.0/direct?q=${citySearchText.value}&limit=1&appid=${appid.value}`
   let response = await fetch(url)
   response = await response.json()
-  if (response) {
+  if (response.length > 0) {
     let cityData = { id: id++, name: citySearchText.value, lat: response[0].lat, lon: response[0].lon, active: false }
     cityList.value.push(cityData)
+    const seenNames = new Set()
+    cityList.value = cityList.value.filter(city => {
+      if (seenNames.has(city.name)) {
+        return false // Duplicate found, exclude it
+      } else {
+        seenNames.add(city.name) // Add new unique name to the Set
+        return true // Keep this item
+      }
+    })
+    console.log(cityList.value)
+    closeModal()
+    citySearchText.value = ''
+    nextSlide()
+  } else {
+    alert("It doesn't exist, input valid data")
   }
 }
 async function getTempeture () {
@@ -362,6 +377,23 @@ function filterTime (id, time) {
   } else {
     return `${new Date(time).getHours()}:00`
   }
+}
+function getWindDirection (d) {
+// Insert the amount of degrees here
+  let degrees = d
+
+  // Define array of directions
+  let directions = ['North', 'Northeast', 'East', 'Southeast', 'South', 'Southwest', 'West', 'Northwest']
+
+  // Split into the 8 directions
+  degrees = degrees * 8 / 360
+
+  // round to nearest integer.
+  degrees = Math.round(degrees, 0)
+
+  // Ensure it's within 0-7
+  degrees = (degrees + 8) % 8
+  return directions[degrees]
 }
 async function callWeatherAPIByLocation () {
   const url = `https://api.openweathermap.org/data/2.5/weather?lat=${listPosition.value[0]}&lon=${listPosition.value[1]}&units=metric&appid=${appid.value}`
@@ -535,7 +567,7 @@ window.onclick = function (event) {
       </div>
       <div class="info-card">
           <span class="info-title">Wind</span>
-          <span class="info-description">Southwest</span>
+          <span class="info-description">{{getWindDirection(dataWeather.wind.deg)}}</span>
           <i class='bx bx-wind'></i>
           <span class="info-value">{{Math.round(dataWeather.wind.speed)}} m/s</span>
       </div>
