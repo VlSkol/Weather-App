@@ -31,8 +31,8 @@ body {
 .sities {
     display: flex;
     justify-content: center;
-    gap: 20px; /* Відстань між містами */
-    flex-grow: 1; /* Дозволяє містам займати ширину між іконками */
+    gap: 20px; /*Відстань між містами */
+    flex-grow: 1; /*Дозволяє містам займати ширину між іконками */
     text-align: center;
     pointer-events: none;
 }
@@ -40,19 +40,19 @@ body {
 .sities div {
     font-size: 25px;
     cursor: pointer;
-    padding: 5px 10px; /* Додаємо відступи для кожного міста */
+    padding: 5px 10px; /* Додаємо відступи для кожного міста*/
     margin: 1px 50px 1px 50px;
     border-radius: 10px; /* Округлені краї */
 }
 
 .sities div.active {
-    background-color: #607ec7; /* Колір фону для вибраного міста */
-    color: black; /* Чорний текст для активного міста */
+    background-color: #607ec7; /* Колір фону для вибраного міста*/
+    color: black; /* Чорний текст для активного міста*/
     box-shadow: 0px 2px 8px 2px;
 }
 
 .sities div:hover {
-    text-decoration: underline; /* Ефект при наведенні */
+    text-decoration: underline; /* Ефект при наведенні*/
 }
 
 .sities .active {
@@ -259,6 +259,121 @@ button#searchCityBtn:hover {
   background-color: #0C2A42;
 }
 </style>
+<script setup>
+import { ref } from 'vue'
+const modal = ref(null)
+const listPosition = ref([])
+const hourlyWeather = ref([])
+const dailyWeather = ref([])
+const dataLocation = ref(null)
+const dataWeather = ref(null)
+const citySearchText = ref('')
+let id = 0
+const cityList = ref([])
+const appid = ref('5ecae512c05deedbe3b442ff6e4fb519')
+// const city = ref(null)
+function openModal () {
+  modal.value.style.display = 'block'
+}
+function closeModal () {
+  modal.value.style.display = 'none'
+}
+function coverterToKm (visibility) {
+  return Number(visibility) / 1000
+}
+function changeCity (city) {
+  console.log('start')
+  // listPosition.value[0] = city.lat
+  // listPosition.value[1] = city.lon
+  // getTempeturebyCity()
+}
+async function searchCity () {
+  const url = `http://api.openweathermap.org/geo/1.0/direct?q=${citySearchText.value}&limit=1&appid=${appid.value}`
+  let response = await fetch(url)
+  response = await response.json()
+  if (response) {
+    let cityData = { id: id++, name: citySearchText.value, lat: response.lat, lon: response.lon, active: false }
+    cityList.value.push(cityData)
+  }
+}
+async function getTempeture () {
+  await getLocation()
+  let cityData = { id: id++, name: dataLocation.value.address.city, lat: listPosition.value[0], lon: listPosition.value[1], active: true }
+  cityList.value.push(cityData)
+  callWeatherAPIByLocation()
+  callWeatherAPIByHour()
+  callWeatherAPIByDay()
+}
+// async function getTempeturebyCity () {
+//   callWeatherAPIByLocation()
+//   callWeatherAPIByHour()
+//   callWeatherAPIByDay()
+// }
+function filterDate (date) {
+  let options = { weekday: 'long' }
+  if (date.getDate() === new Date().getDate()) {
+    return 'Today'
+  } else if (date.getDate() === new Date().getDate() + 1) {
+    return 'Tomorrow'
+  } else {
+    return new Intl.DateTimeFormat('en-US', options).format(date)
+  }
+}
+async function callWeatherAPIByLocation () {
+  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${listPosition.value[0]}&lon=${listPosition.value[1]}&units=metric&appid=${appid.value}`
+  const url2 = `https://api.open-meteo.com/v1/forecast?latitude=${listPosition.value[0]}&longitude=${listPosition.value[1]}&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1&forecast_hours=6`
+  let response = await fetch(url)
+  response = await response.json()
+  let responseMaxMin = await fetch(url2)
+  responseMaxMin = await responseMaxMin.json()
+  dataWeather.value = response.main
+  dataWeather.value.temp_max = responseMaxMin.daily.temperature_2m_max[0]
+  dataWeather.value.temp_min = responseMaxMin.daily.temperature_2m_min[0]
+  dataWeather.value.visibility = response.visibility
+  dataWeather.value.wind = response.wind
+  dataWeather.value.description = response.weather[0].main
+}
+async function callWeatherAPIByHour () {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${listPosition.value[0]}&longitude=${listPosition.value[1]}&hourly=temperature_2m&timezone=auto&forecast_days=1&forecast_hours=6`
+  let response = await fetch(url)
+  response = await response.json()
+  for (let i = 0; i < 6; i++) {
+    let weatherHourData = { id: i, weather: response.hourly.temperature_2m[i], time: response.hourly.time[i] }
+    hourlyWeather.value.push(weatherHourData)
+  }
+}
+async function callWeatherAPIByDay () {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${listPosition.value[0]}&longitude=${listPosition.value[1]}&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_hours=6`
+  let response = await fetch(url)
+  response = await response.json()
+  for (let i = 0; i < 6; i++) {
+    let weatherDayData = { id: i, weather_max: response.daily.temperature_2m_max[i], weather_min: response.daily.temperature_2m_min[i], date: response.daily.time[i] }
+    dailyWeather.value.push(weatherDayData)
+  }
+}
+function getPosition () { // потрібно повернути значення довготи та широти з функції getCurrentPosition,для цього обернув її в Promise
+  return new Promise(function (resolve, reject) {
+    navigator.geolocation.getCurrentPosition(resolve, reject)
+  })
+}
+async function getLocation () { // отримання даних містознаходження
+  await getPosition().then((position) => {
+    listPosition.value.push(position.coords.latitude)
+    listPosition.value.push(position.coords.longitude)
+  })
+  const url = `https://nominatim.openstreetmap.org/reverse.php?lat=${listPosition.value[0]}&lon=${listPosition.value[1]}&zoom=18&format=jsonv2`
+  const response = await fetch(url)
+  dataLocation.value = await response.json()
+}
+getTempeture()
+
+window.onclick = function (event) {
+  if (event.target === modal.value) {
+    modal.value.style.display = 'none'
+  }
+}
+
+</script>
 <template>
   <!DOCTYPE html>
 <html lang="en">
@@ -273,13 +388,7 @@ button#searchCityBtn:hover {
     <i class='bx bx-chevron-left-circle' id="scrollLeft"></i>
     <div class="sities-container">
         <div class="sities" id="citiesList">
-            <div class="active">{city}</div>
-            <!-- <div>Kyiv</div>
-            <div>Kharkiv</div>
-            <div>Kyiv</div>
-            <div>Kharkiv</div>
-            <div>Kyiv</div>
-            <div>Kharkiv</div> -->
+          <div :class="{ active: city.active }" v-for="city in cityList" :key="city.id" @click="changeCity">{{city.name}}</div>
         </div>
     </div>
     <i class='bx bx-plus' id="openModal" @click="openModal"></i>
@@ -290,23 +399,22 @@ button#searchCityBtn:hover {
       <div class="modal-content" >
           <span class="close" @click="closeModal">&times;</span>
           <h2>Search for City</h2>
-          <input type="text" id="citySearch" placeholder="Enter city name..." />
-          <button id="searchCityBtn">Search</button>
+          <input type="text" id="citySearch" placeholder="Enter city name..." v-model="citySearchText"/>
+          <button id="searchCityBtn" @click="searchCity">Search</button>
       </div>
     </div>
 
       <div class="maininf">
-        <div class="mtemperature">25°C <p class="condition">Sunny</p></div>
-
-        <div class="mean">13 / 48</div>
+        <div class="mtemperature">{{Math.round(Number(dataWeather.temp))}}°C <p class="condition">{{ dataWeather.description }}</p></div>
+        <div class="mean">{{Math.round(Number(dataWeather.temp_min))}} / {{Math.round(Number(dataWeather.temp_max))}}</div>
       </div>
     <div class="container">
         <div class="forecast">
-          <div class="forecast-item">
-            <div>Now</div>
-            <div>25</div>
+          <div v-for="weather in hourlyWeather" v-bind:key="weather.id" class="forecast-item">
+            <div>{{ new Date(weather.time).getHours() === new Date().getHours()? "Now":`${new Date(weather.time).getHours()}:00` }}</div>
+            <div>{{ new Date(weather.time).getHours() === new Date().getHours()? Math.round(Number(dataWeather.temp)) : Math.round(Number(weather.weather))  }}</div>
           </div>
-          <div class="forecast-item">
+          <!-- <div class="forecast-item">
             <div>16:00</div>
             <div>25</div>
           </div>
@@ -325,18 +433,18 @@ button#searchCityBtn:hover {
           <div class="forecast-item">
             <div>20:00</div>
             <div>26</div>
-          </div>
+          </div> -->
         </div>
       </div>
       <div class="forecast-block">
-        <div class="forecast-day">
-            <span class="day-name">Today</span>
+        <div v-for="weather in dailyWeather" :key="weather.id" class="forecast-day">
+            <span class="day-name">{{filterDate(new Date(weather.date))}}</span>
             <div class="weather-info">
                 <i class='bx bx-sun'></i>
-                <span class="temperature">25/13</span>
+                <span class="temperature">{{Math.round(Number(weather.weather_min))}}/{{Math.round(Number(weather.weather_max))}}</span>
             </div>
         </div>
-        <div class="forecast-day">
+        <!-- <div class="forecast-day">
             <span class="day-name">Tomorrow</span>
             <div class="weather-info">
               <i class='bx bx-cloud-light-rain'></i>
@@ -370,72 +478,31 @@ button#searchCityBtn:hover {
                 <i class='bx bx-sun'></i>
                 <span class="temperature">25/17</span>
             </div>
-        </div>
+        </div> -->
     </div>
     <div class="info-blocks">
       <div class="info-card">
           <span class="info-title">Humidity</span>
           <i class='bx bx-droplet'></i>
-          <span class="info-value">25%</span>
+          <span class="info-value">{{dataWeather.humidity}}%</span>
       </div>
       <div class="info-card">
           <span class="info-title">Wind</span>
           <span class="info-description">Southwest</span>
           <i class='bx bx-wind'></i>
-          <span class="info-value">100 км/ч</span>
+          <span class="info-value">{{Math.round(dataWeather.wind.speed)}} m/s</span>
       </div>
       <div class="info-card">
           <span class="info-title">Pressure</span>
           <i class='bx bx-water'></i>
-          <span class="info-value">1 021 гПа</span>
+          <span class="info-value">{{dataWeather.pressure}} hPa</span>
       </div>
       <div class="info-card">
           <span class="info-title">Visibility</span>
           <i class='bx bx-show-alt'></i>
-          <span class="info-value">10.0km</span>
+          <span class="info-value">{{coverterToKm(dataWeather.visibility)}}km</span>
       </div>
   </div>
 </body>
 </html>
 </template>
-<script setup>
-import { ref } from 'vue'
-const modal = ref(null)
-const listPosition = ref([])
-const dataLocation = ref(null)
-// const city = ref(null)
-function openModal () {
-  modal.value.style.display = 'block'
-}
-function closeModal () {
-  modal.value.style.display = 'none'
-}
-function getTempeture () {
-  getLocation().then((location) => { dataLocation.value = location })
-  console.log(dataLocation)
-}
-function getPosition () {
-  return new Promise(function (resolve, reject) {
-    navigator.geolocation.getCurrentPosition(resolve, reject)
-  })
-}
-
-async function getLocation () {
-  await getPosition().then((position) => {
-    listPosition.value.push(position.coords.latitude)
-    listPosition.value.push(position.coords.longitude)
-  })
-  console.log(`${listPosition.value[0]}, ${listPosition.value[1]}`)
-  const url = `https://nominatim.openstreetmap.org/reverse.php?lat=${listPosition.value[0]}&lon=${listPosition.value[1]}&zoom=18&format=jsonv2`
-  const response = await fetch(url)
-  return await response.json()
-}
-getTempeture()
-
-window.onclick = function (event) {
-  if (event.target === modal.value) {
-    modal.value.style.display = 'none'
-  }
-}
-
-</script>
