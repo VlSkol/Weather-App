@@ -261,6 +261,7 @@ button#searchCityBtn:hover {
 </style>
 <script setup>
 import { ref, computed } from 'vue'
+import weatherName from './assets/descriptions.json'
 const modal = ref(null)
 const citiesPerSlide = 3
 const currentSlide = ref(0)
@@ -355,6 +356,13 @@ function filterDate (date) {
     return new Intl.DateTimeFormat('en-US', options).format(date)
   }
 }
+function filterTime (id, time) {
+  if (id === 0) {
+    return 'Now'
+  } else {
+    return `${new Date(time).getHours()}:00`
+  }
+}
 async function callWeatherAPIByLocation () {
   const url = `https://api.openweathermap.org/data/2.5/weather?lat=${listPosition.value[0]}&lon=${listPosition.value[1]}&units=metric&appid=${appid.value}`
   const url2 = `https://api.open-meteo.com/v1/forecast?latitude=${listPosition.value[0]}&longitude=${listPosition.value[1]}&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1&forecast_hours=6`
@@ -379,11 +387,11 @@ async function callWeatherAPIByHour () {
   }
 }
 async function callWeatherAPIByDay () {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${listPosition.value[0]}&longitude=${listPosition.value[1]}&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_hours=6`
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${listPosition.value[0]}&longitude=${listPosition.value[1]}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_hours=6`
   let response = await fetch(url)
   response = await response.json()
   for (let i = 0; i < 6; i++) {
-    let weatherDayData = { id: i, weather_max: response.daily.temperature_2m_max[i], weather_min: response.daily.temperature_2m_min[i], date: response.daily.time[i] }
+    let weatherDayData = { id: i, weather_max: response.daily.temperature_2m_max[i], weather_code: response.daily.weather_code[i], weather_min: response.daily.temperature_2m_min[i], date: response.daily.time[i] }
     dailyWeather.value.push(weatherDayData)
   }
 }
@@ -400,6 +408,9 @@ async function getLocation () { // отримання даних містозн�
   const url = `https://nominatim.openstreetmap.org/reverse.php?lat=${listPosition.value[0]}&lon=${listPosition.value[1]}&zoom=18&format=jsonv2`
   const response = await fetch(url)
   dataLocation.value = await response.json()
+}
+function downloadLink (code) {
+  return weatherName[code].day.image
 }
 getTempeture()
 
@@ -447,7 +458,7 @@ window.onclick = function (event) {
     <div class="container">
         <div class="forecast">
           <div v-for="weather in hourlyWeather" v-bind:key="weather.id" class="forecast-item">
-            <div>{{ new Date(weather.time).getHours() === new Date().getHours()? "Now":`${new Date(weather.time).getHours()}:00` }}</div>
+            <div>{{ filterTime(weather.id,weather.time) }}</div>
             <div>{{ new Date(weather.time).getHours() === new Date().getHours()? Math.round(Number(dataWeather.temp)) : Math.round(Number(weather.weather))  }}</div>
           </div>
           <!-- <div class="forecast-item">
@@ -476,7 +487,7 @@ window.onclick = function (event) {
         <div v-for="weather in dailyWeather" :key="weather.id" class="forecast-day">
             <span class="day-name">{{filterDate(new Date(weather.date))}}</span>
             <div class="weather-info">
-                <i class='bx bx-sun'></i>
+                <img v-bind:src="downloadLink(weather.weather_code)"/>
                 <span class="temperature">{{Math.round(Number(weather.weather_min))}}/{{Math.round(Number(weather.weather_max))}}</span>
             </div>
         </div>
