@@ -99,8 +99,15 @@ body {
     margin-top: 47px;
     font-size: 40px; 
   }
+
+  .mean-container {
+    display: flex; /* Горизонтальне розташування елементів */
+    gap: 20px; /* Проміжок між блоками */
+    align-items: center; /* Вертикальне вирівнювання по центру */
+}
   
   .mean {
+    padding-right: 95px;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
     font-size: 24px;
   }
