@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <title>Weather</title>
+</head>
+<body>
+  <div class="topmenu">
+    <i class='bx bx-chevron-left-circle' id="scrollLeft"></i>
+    <i class='bx bx-minus'></i>
+    <div class="sities-container">
+        <div class="sities" id="citiesList">
+            <div class="active">Dnipro</div>
+            <div>Kyiv</div>
+            <div>Kharkiv</div>
+            <div>Kyiv</div>
+        </div>
+    </div>
+    <i class='bx bx-plus' id="openModal"></i>
+    <i class='bx bx-chevron-right-circle' id="scrollRight"></i>
+  </div>
+
+    <div id="myModal" class="modal">
+      <div class="modal-content">
+          <span class="close">&times;</span>
+          <h2>Search for City</h2>
+          <input type="text" id="citySearch" placeholder="Enter city name..." />
+          <button id="searchCityBtn">Search</button>
+      </div>
+    </div>
+
+      <div class="maininf">
+        <div class="mtemperature">25°C <p class="condition">Sunny</p></div>
+        
+        <div class="mean-container">
+          <div class="mean">AV  13°C / 48°C</div>
+          <div class="mean">Air quality: 68 - average</div>
+      </div>
+      </div>
+    <div class="container">  
+        <div class="forecast">
+          <div class="forecast-item">
+            <div>Now</div>
+            <div><i class='bx bx-cloud-light-rain'></i></div>
+            <div>25°C</div>
+          </div>
+          <div class="forecast-item">
+            <div>16:00</div>
+            <div><i class='bx bx-cloud-light-rain'></i></div>
+            <div>25°C</div>
+          </div>
+          <div class="forecast-item">
+            <div>17:00</div>
+            <div><i class='bx bx-cloud-light-rain'></i></div>
+            <div>26°C</div>
+          </div>
+          <div class="forecast-item">
+            <div>18:00</div>
+            <div><i class='bx bx-cloud-light-rain'></i></div>
+            <div>26°C</div>
+          </div>
+          <div class="forecast-item">
+            <div>19:00</div>
+            <div><i class='bx bx-sun'></i></i></div>
+            <div>26°C</div>
+          </div>
+          <div class="forecast-item">
+            <div>20:00</div>
+            <div><i class='bx bx-sun'></i></div>
+            <div>26°C</div>
+          </div>
+        </div>
+      </div>
+      <div class="forecast-block">
+        <div class="forecast-day">
+            <span class="day-name">Today</span>
+            <div class="weather-info">
+                <i class='bx bx-sun'></i>
+                <span class="temperature">25°C/13°C</span>
+            </div>
+        </div>
+        <div class="forecast-day">
+            <span class="day-name">Tomorrow</span>
+            <div class="weather-info">
+              <i class='bx bx-cloud-light-rain'></i>
+                <span class="temperature">25°C/13°C</span>
+            </div>
+        </div>
+        <div class="forecast-day">
+            <span class="day-name">Monday</span>
+            <div class="weather-info">
+              <i class='bx bx-cloud-lightning'></i>
+                <span class="temperature">25°C/13°C</span>
+            </div>
+        </div>
+        <div class="forecast-day">
+            <span class="day-name">Tuesday</span>
+            <div class="weather-info">
+                <i class='bx bx-sun'></i>
+                <span class="temperature">25°C/13°C</span>
+            </div>
+        </div>
+        <div class="forecast-day">
+            <span class="day-name">Wednesday</span>
+            <div class="weather-info">
+                <i class='bx bx-sun'></i>
+                <span class="temperature">25°C/13°C</span>
+            </div>
+        </div>
+        <div class="forecast-day">
+            <span class="day-name">Thursday</span>
+            <div class="weather-info">
+                <i class='bx bx-sun'></i>
+                <span class="temperature">25°C/17°C</span>
+            </div>
+        </div>        
+    </div>   
+    <div class="info-blocks">
+      <div class="info-card">
+        <span class="info-title">Humidity</span>
+        <i class='bx bx-droplet'></i>
+        <span class="info-value">25%</span>
+    </div>
+    
+    <div class="info-card">
+        <span class="info-title">Wind</span>
+        <i class='bx bx-wind'></i>
+        <span class="info-description">Southwest</span>
+        <span class="info-value">100 км/ч</span>
+    </div>
+    
+    <div class="info-card">
+        <span class="info-title">Pressure</span>
+        <i class='bx bx-water'></i>
+        <span class="info-value">1 021 гПа</span>
+    </div>
+    
+    <div class="info-card">
+        <span class="info-title">Visibility</span>
+        <i class='bx bx-show-alt'></i>
+        <span class="info-value">10.0 км</span>
+    </div>
+    
+  </div>
+  
+  <script src="app.js"></script>
+</body>
+</html>
